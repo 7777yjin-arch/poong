@@ -57,6 +57,7 @@ export const crews = [
       { name: '해기_', id: 'he0901', role: '멤버', img: '/images/topmunpa/he0901.jpg', category: 'student' },
       { name: '칸_김동하', id: 'gkdlqk13', role: '멤버', img: '/images/topmunpa/gkdlqk13.jpg', category: 'student' },
       { name: '엊우진', id: 'oox00x', role: '멤버', img: '/images/topmunpa/oox00x.jpg', category: 'student' },
+      { name: '주하랑', id: 'fpahsdltu1', role: '멤버', img: '/images/topmunpa/fpahsdltu1.jpg', category: 'student' },
     ],
   },
 ]
