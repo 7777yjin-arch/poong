@@ -2,7 +2,7 @@ export const crews = [
   {
     name: 'YB',
     logo: 'https://yxl.kr/inf/img/yb_logo_main.webp',
-    since: '2024.10.01',
+    since: '2023.05.20',
     bossRole: '수장',
     members: [
       { name: 'A-염보성!!', id: 'yuambo', role: '수장', tribe: '테란', tier: '젝티어', img: '/images/yb/yuambo.jpg', category: 'staff' },
@@ -29,7 +29,7 @@ export const crews = [
   {
     name: 'YXL',
     logo: '/images/YXL_gif.webp',
-    since: '2024.04.01',
+    since: '2024.10.01',
     bossRole: '대표',
     members: [
       { name: 'A-염보성!!', id: 'yuambo', role: '대표', img: '/images/yxl/yuambo.jpg', category: 'staff' },
