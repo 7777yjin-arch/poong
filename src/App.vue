@@ -170,7 +170,7 @@ function getBoss(crew) {
 }
 
 function getOtherMembers(crew) {
-  const others = getMembers(crew.name).filter(m => m.role !== crew.bossRole)
+  const others = getMembers(crew.name).filter(m => m.id !== 'yuambo')
   return others.sort((a, b) => {
     const aLive = isLive(a.id) ? 1 : 0
     const bLive = isLive(b.id) ? 1 : 0
