@@ -22,8 +22,8 @@ export const crews = [
       { name: '한쪼니', id: 'zzonii', role: '학생', tribe: '프로토스', tier: '7티어', img: '/images/yb/zzonii.jpg', category: 'student' },
       { name: '하루묭.', id: 'harumyong', role: '학생', tribe: '프로토스', tier: '7티어', img: '/images/yb/harumyong.jpg', category: 'student' },
       { name: '윤하랑=_=', id: 'xx00uxx', role: '유스', tribe: '프로토스', tier: '-', img: '/images/yb/xx00uxx.jpg', category: 'student' },
-      { name: '준밧드', id: 'gksdidqksxn', role: '-', tribe: '-', tier: 'LoL', img: '/images/yb/gksdidqksxn.jpg', category: 'etc',new: true },
-      { name: '임아니', id: '1004suna', role: '-', tribe: '-', tier: 'LoL', img: '/images/yb/1004suna.jpg', category: 'etc', new: true },
+      { name: '준밧드', id: 'gksdidqksxn', role: '어드바이저', tribe: '-', tier: 'LoL', img: '/images/yb/gksdidqksxn.jpg', category: 'etc',new: true },
+      { name: '임아니', id: '1004suna', role: '어드바이저', tribe: '-', tier: 'LoL', img: '/images/yb/1004suna.jpg', category: 'etc', new: true },
     ],
   },
   {
