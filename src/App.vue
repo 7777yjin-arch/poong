@@ -339,7 +339,7 @@ function getRoleStyle(role) {
 .app {
   max-width: 960px;
   margin: 0 auto;
-  padding: 0 20px 40px;
+  padding: 0 16px 20px;
   background: var(--bg-card);
   min-height: 100vh;
   transition: background 0.3s;
@@ -350,7 +350,7 @@ function getRoleStyle(role) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 0;
+  padding: 12px 0;
   border-bottom: 1px solid var(--border);
 }
 .global-title {
@@ -376,8 +376,8 @@ function getRoleStyle(role) {
 
 /* Crew Section */
 .crew-section {
-  margin-top: 32px;
-  padding-bottom: 32px;
+  margin-top: 16px;
+  padding-bottom: 16px;
   border-bottom: 2px solid var(--border);
 }
 .crew-section:last-of-type {
@@ -389,8 +389,8 @@ function getRoleStyle(role) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 16px;
+  gap: 12px;
+  padding-bottom: 8px;
 }
 .crew-left {
   display: flex;
@@ -398,8 +398,8 @@ function getRoleStyle(role) {
   gap: 14px;
 }
 .crew-emblem {
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -460,8 +460,8 @@ function getRoleStyle(role) {
 
 /* Summary */
 .summary {
-  padding: 10px 0;
-  font-size: 13px;
+  padding: 6px 0;
+  font-size: 12px;
   color: var(--text-sub);
   border-bottom: 1px solid var(--border);
 }
@@ -472,7 +472,7 @@ function getRoleStyle(role) {
 
 /* Boss */
 .boss-section {
-  padding: 20px 0;
+  padding: 10px 0;
   border-bottom: 1px solid var(--border);
 }
 .boss-card {
@@ -487,8 +487,8 @@ function getRoleStyle(role) {
   flex-shrink: 0;
 }
 .boss-img {
-  width: 76px;
-  height: 76px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   overflow: hidden;
   background: var(--bg-elevated);
@@ -566,9 +566,9 @@ function getRoleStyle(role) {
 /* Members Grid */
 .members-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: 20px 12px;
-  padding: 20px 0;
+  grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+  gap: 10px 8px;
+  padding: 10px 0;
 }
 .member-item {
   display: flex;
@@ -586,8 +586,8 @@ function getRoleStyle(role) {
   position: relative;
 }
 .member-img {
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   overflow: hidden;
   background: var(--bg-elevated);
@@ -621,11 +621,11 @@ function getRoleStyle(role) {
   letter-spacing: 0.3px;
 }
 .member-name {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text);
   text-align: center;
-  max-width: 90px;
+  max-width: 75px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
