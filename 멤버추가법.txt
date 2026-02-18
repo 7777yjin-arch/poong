@@ -1,0 +1,48 @@
+[ 멤버 추가하는 법 ]
+
+깃헙 들어가서 src/data/crews.js 파일 수정하면 됨
+주소: https://github.com/7777yjin-arch/poong/blob/main/src/data/crews.js
+
+파일 열고 오른쪽 연필 아이콘 누르면 편집 가능
+
+
+1. 추가할 크루 찾기
+
+   YB면 YB members 안에, YXL이면 YXL members 안에,
+   탑문파면 탑문파 members 안에 넣으면 됨
+
+
+2. 아래 양식 복붙해서 수정
+
+   { name: '닉네임', id: 'SOOP아이디', role: '멤버', img: '/images/topmunpa/SOOP아이디.jpg', category: 'student' },
+
+   - name: 화면에 보이는 이름
+   - id: 숲 주소 뒷부분 (sooplive.co.kr/station/여기부분)
+   - role: 역할 (멤버, 학생, 교수 등 아무거나)
+   - img: 프사 경로 (없으면 '' 넣으면 이름 첫글자로 나옴)
+   - new: true 붙이면 NEW 딱지 붙음
+
+   예시) 숲 주소가 sooplive.co.kr/station/abc123 이면
+   { name: '홍길동', id: 'abc123', role: '멤버', img: '', category: 'student' },
+
+
+3. 수정 다 했으면 아래 Commit changes 버튼 누르기
+
+   누르면 알아서 사이트에 반영됨 (1~2분 걸림)
+
+
+4. 프사 넣고 싶으면
+
+   깃헙에서 public/images/topmunpa/ 폴더 들어가서
+   Add file > Upload files 누르고
+   파일이름을 SOOP아이디.jpg 로 맞춰서 올리면 됨
+
+   그다음 crews.js에서 img 부분을 '/images/topmunpa/SOOP아이디.jpg' 로 수정
+
+
+5. 멤버 빼고 싶으면
+
+   해당 줄 통째로 지우고 커밋하면 끝
+
+
+* 주의: 쉼표(,) 빠뜨리면 사이트 터지니까 양식 그대로 복붙해서 쓸것
