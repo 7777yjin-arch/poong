@@ -54,10 +54,10 @@ export const crews = [
     since: '2025.01.01',
     bossRole: '파주',
     members: [
-      { name: '해기_', id: 'he0901', role: '멤버', img: '/images/topmunpa/he0901.jpg', category: 'student' },
-      { name: '칸_김동하', id: 'gkdlqk13', role: '멤버', img: '/images/topmunpa/gkdlqk13.jpg', category: 'student' },
-      { name: '엊우진', id: 'oox00x', role: '멤버', img: '/images/topmunpa/oox00x.jpg', category: 'student' },
-      { name: '주하랑', id: 'fpahsdltu1', role: '멤버', img: '/images/topmunpa/fpahsdltu1.jpg', category: 'student' },
+      { name: '해기_', id: 'he0901', role: '사형제', img: '/images/topmunpa/he0901.jpg', category: 'student' },
+      { name: '칸_김동하', id: 'gkdlqk13', role: '사부', img: '/images/topmunpa/gkdlqk13.jpg', category: 'student' },
+      { name: '엊우진', id: 'oox00x', role: '사형제', img: '/images/topmunpa/oox00x.jpg', category: 'student' },
+      { name: 'A-염보성!!', id: 'yuambo', role: '사형제', img: '/images/yxl/yuambo.jpg', category: 'staff' },
     ],
   },
 ]
