@@ -250,6 +250,7 @@ function getRoleStyle(role) {
               <div class="fallback" style="display:none">{{ getBoss(crew).name[0] }}</div>
             </div>
             <span v-if="isLive(getBoss(crew).id)" class="live-dot-badge">LIVE</span>
+            <span v-if="getBoss(crew).new" class="new-badge">NEW</span>
           </div>
           <div class="boss-info">
             <span class="boss-role" :style="getRoleStyle(crew.bossRole)">{{ crew.bossRole }}</span>
@@ -277,6 +278,7 @@ function getRoleStyle(role) {
               <div class="fallback" style="display:none">{{ m.name[0] }}</div>
             </div>
             <span v-if="isLive(m.id)" class="live-dot-badge">LIVE</span>
+            <span v-if="m.new" class="new-badge">NEW</span>
             <button v-if="m.custom" class="remove-btn" @click.prevent="removeMember(crew.name, m.id)" title="삭제">×</button>
           </div>
           <span class="member-role" :style="getRoleStyle(m.role)">{{ m.role === '-' ? '기타' : m.role }}</span>
@@ -548,6 +550,18 @@ function getRoleStyle(role) {
   border-radius: 8px;
   letter-spacing: 0.5px;
   white-space: nowrap;
+}
+.new-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #f59e0b;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
 }
 
 /* Members Grid */
