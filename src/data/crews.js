@@ -28,7 +28,7 @@ export const crews = [
   },
   {
     name: 'YXL',
-    logo: 'https://yxl.kr/inf/img/yxl_logo_main.webp',
+    logo: '/images/YXL_gif.webp',
     since: '2024.04.01',
     bossRole: '대표',
     members: [
