@@ -5,7 +5,7 @@ export const crews = [
     since: '2024.10.01',
     bossRole: '수장',
     members: [
-      { name: 'A-염보성!!', id: 'yuambo', role: '수장', tribe: '테란', tier: '젝티어', img: '/images/yb/yuambo.jpg', category: 'staff' },
+      { name: '좆병신!!', id: 'yuambo', role: '수장', tribe: '테란', tier: '젝티어', img: '/images/yb/yuambo.jpg', category: 'staff' },
       { name: '4s.사테', id: 'hoonykkk', role: '교수', tribe: '테란', tier: '팅티어', img: '/images/yb/hoonykkk.jpg', category: 'staff' },
       { name: 'Scan유승계', id: 'scan1014', role: '교수', tribe: '테란', tier: '팅티어', img: '/images/yb/scan1014.jpg', category: 'staff' },
       { name: '전제민', id: 'wjswpalssla1', role: '교수', tribe: '프로토스', tier: '조커티어', img: '/images/yb/wjswpalssla1.jpg', category: 'staff' },
