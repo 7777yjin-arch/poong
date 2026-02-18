@@ -400,11 +400,9 @@ function getRoleStyle(role) {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--emblem-from), var(--emblem-to));
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
 }
 .crew-emblem img {
   width: 100%;
