@@ -61,7 +61,7 @@ export const crews = [
   },
 ]
 
-export const roleOrder = ['수장', '대표', '교수', '부장', '차장', '과장', '어드바이저', '비서실장', '대리', '주임', '사원', '웨이터', '시급', '학생', '유스', '신입', '-']
+export const roleOrder = ['수장', '대표', '파주', '사부', '교수', '부장', '차장', '과장', '어드바이저', '비서실장', '대리', '주임', '사원', '웨이터', '시급', '학생', '사형제', '유스', '신입', '멤버', '-']
 
 export const tribeColor = {
   '테란': { color: '#3b82f6', bg: '#dbeafe' },
@@ -87,5 +87,8 @@ export const roleColor = {
   '유스': { color: '#fff', bg: '#059669' },
   '신입': { color: '#fff', bg: '#059669' },
   '파주': { color: '#fff', bg: '#dc2626' },
+  '사부': { color: '#fff', bg: '#7c3aed' },
+  '사형제': { color: '#fff', bg: '#2563eb' },
+  '멤버': { color: '#fff', bg: '#64748b' },
   '-': { color: '#fff', bg: '#64748b' },
 }
