@@ -51,7 +51,7 @@ export const crews = [
   {
     name: '탑문파',
     logo: '',
-    since: '2025.01.01',
+    since: '2026.02.18',
     bossRole: '파주',
     members: [
       { name: '해기_', id: 'he0901', role: '사형제', img: '/images/topmunpa/he0901.jpg', category: 'student' },
