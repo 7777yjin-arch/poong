@@ -48,6 +48,15 @@ export const crews = [
       { name: '류서하♡', id: 'smkim82372', role: '신입', img: '/images/yxl/smkim82372.jpg', category: 'student' },
     ],
   },
+  {
+    name: '탑문파',
+    logo: '',
+    since: '2025.01.01',
+    bossRole: '파주',
+    members: [
+      { name: 'A-염보성!!', id: 'yuambo', role: '파주', img: '/images/yb/yuambo.jpg', category: 'staff' },
+    ],
+  },
 ]
 
 export const roleOrder = ['수장', '대표', '교수', '부장', '차장', '과장', '어드바이저', '비서실장', '대리', '주임', '사원', '웨이터', '시급', '학생', '유스', '신입', '-']
@@ -75,5 +84,6 @@ export const roleColor = {
   '학생': { color: '#fff', bg: '#2563eb' },
   '유스': { color: '#fff', bg: '#059669' },
   '신입': { color: '#fff', bg: '#059669' },
+  '파주': { color: '#fff', bg: '#dc2626' },
   '-': { color: '#fff', bg: '#64748b' },
 }
