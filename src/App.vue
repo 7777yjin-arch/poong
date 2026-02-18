@@ -213,6 +213,27 @@ function getRoleStyle(role) {
       </button>
     </div>
 
+    <!-- Boss (염보성) -->
+    <div class="boss-section" v-if="getBoss(crews[0])">
+      <a :href="soopLink(getBoss(crews[0]).id)" target="_blank" class="boss-card"
+        @mouseenter="showPreview(getBoss(crews[0]).id, $event)"
+        @mousemove="updatePreviewPos($event)"
+        @mouseleave="hidePreview"
+      >
+        <div class="boss-img-wrap">
+          <div class="boss-img" :class="{ 'live-ring': isLive(getBoss(crews[0]).id) }">
+            <img :src="getBoss(crews[0]).img" :alt="getBoss(crews[0]).name" @error="onImgError" />
+            <div class="fallback" style="display:none">{{ getBoss(crews[0]).name[0] }}</div>
+          </div>
+          <span v-if="isLive(getBoss(crews[0]).id)" class="live-dot-badge">LIVE</span>
+        </div>
+        <div class="boss-info">
+          <span class="boss-name">{{ getBoss(crews[0]).name }}</span>
+          <span v-if="isLive(getBoss(crews[0]).id)" class="boss-live-title">{{ liveTitle(getBoss(crews[0]).id) }}</span>
+        </div>
+      </a>
+    </div>
+
     <!-- Crew Sections -->
     <div v-for="crew in crews" :key="crew.name" class="crew-section">
       <!-- Crew Header -->
@@ -237,29 +258,6 @@ function getRoleStyle(role) {
       <!-- Summary -->
       <div class="summary">
         총원 <strong>{{ getMembers(crew.name).length }}명</strong>
-      </div>
-
-      <!-- Boss -->
-      <div class="boss-section" v-if="getBoss(crew)">
-        <a :href="soopLink(getBoss(crew).id)" target="_blank" class="boss-card"
-          @mouseenter="showPreview(getBoss(crew).id, $event)"
-          @mousemove="updatePreviewPos($event)"
-          @mouseleave="hidePreview"
-        >
-          <div class="boss-img-wrap">
-            <div class="boss-img" :class="{ 'live-ring': isLive(getBoss(crew).id) }">
-              <img :src="getBoss(crew).img" :alt="getBoss(crew).name" @error="onImgError" />
-              <div class="fallback" style="display:none">{{ getBoss(crew).name[0] }}</div>
-            </div>
-            <span v-if="isLive(getBoss(crew).id)" class="live-dot-badge">LIVE</span>
-            <span v-if="getBoss(crew).new" class="new-badge">NEW</span>
-          </div>
-          <div class="boss-info">
-            <span class="boss-role" :style="getRoleStyle(crew.bossRole)">{{ crew.bossRole }}</span>
-            <span class="boss-name">{{ getBoss(crew).name }}</span>
-            <span v-if="isLive(getBoss(crew).id)" class="boss-live-title">{{ liveTitle(getBoss(crew).id) }}</span>
-          </div>
-        </a>
       </div>
 
       <!-- Members Grid -->
