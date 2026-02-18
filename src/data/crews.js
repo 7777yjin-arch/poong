@@ -45,7 +45,7 @@ export const crews = [
       { name: '유나연♡', id: 'jeewon1202', role: '시급', img: '/images/yxl/jeewon1202.jpg', category: 'student' },
       { name: '냥냥수주', id: 'star49', role: '신입', img: '/images/yxl/star49.jpg', category: 'student' },
       { name: '미로。', id: 'fhwm0602', role: '신입', img: '/images/yxl/fhwm0602.jpg', category: 'student' },
-      { name: '넘서하♡', id: 'smkim82372', role: '신입', img: '/images/yxl/smkim82372.jpg', category: 'student' },
+      { name: '류서하♡', id: 'smkim82372', role: '신입', img: '/images/yxl/smkim82372.jpg', category: 'student' },
     ],
   },
 ]
