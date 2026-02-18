@@ -55,9 +55,9 @@ export const crews = [
     bossRole: '파주',
     members: [
       { name: '4s.사테', id: 'hoonykkk', role: '멤버', img: '/images/yb/hoonykkk.jpg', category: 'student' },
-      { name: '해기_', id: 'he0901', role: '멤버', category: 'student' },
-      { name: '칸_김동하', id: 'gkdlqk13', role: '멤버', category: 'student' },
-      { name: '엊우진', id: 'oox00x', role: '멤버', category: 'student' },
+      { name: '해기_', id: 'he0901', role: '멤버', img: '/images/topmunpa/he0901.jpg', category: 'student' },
+      { name: '칸_김동하', id: 'gkdlqk13', role: '멤버', img: '/images/topmunpa/gkdlqk13.jpg', category: 'student' },
+      { name: '엊우진', id: 'oox00x', role: '멤버', img: '/images/topmunpa/oox00x.jpg', category: 'student' },
     ],
   },
 ]
