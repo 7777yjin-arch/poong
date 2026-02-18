@@ -54,7 +54,7 @@ export const crews = [
     since: '2025.01.01',
     bossRole: '파주',
     members: [
-      { name: 'A-염보성!!', id: 'yuambo', role: '파주', img: '/images/yb/yuambo.jpg', category: 'staff' },
+      { name: '4s.사테', id: 'hoonykkk', role: '멤버', img: '/images/yb/hoonykkk.jpg', category: 'student' },
     ],
   },
 ]
