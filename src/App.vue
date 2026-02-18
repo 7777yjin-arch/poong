@@ -228,6 +228,7 @@ function getRoleStyle(role) {
           <span v-if="isLive(getBoss(crews[0]).id)" class="live-dot-badge">LIVE</span>
         </div>
         <div class="boss-info">
+          <span class="boss-role" :style="getRoleStyle(crews[0].bossRole)">{{ crews[0].bossRole }}</span>
           <span class="boss-name">{{ getBoss(crews[0]).name }}</span>
           <span v-if="isLive(getBoss(crews[0]).id)" class="boss-live-title">{{ liveTitle(getBoss(crews[0]).id) }}</span>
         </div>
