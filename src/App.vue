@@ -192,6 +192,8 @@ function onImgError(e) {
 }
 
 function soopLink(id) {
+  const bno = liveStatus.value[id]?.bno
+  if (bno) return `https://play.sooplive.co.kr/${id}/${bno}`
   return `https://www.sooplive.co.kr/${id}`
 }
 
