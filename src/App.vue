@@ -327,7 +327,6 @@ function getRoleStyle(role) {
     </Teleport>
 
     <footer class="footer">
-      <p>크루 현황판 — poong.today · yxl.kr</p>
       <p v-if="lastUpdated" class="last-update">
         마지막 갱신: {{ lastUpdated.toLocaleTimeString('ko-KR') }} (5분마다 자동 갱신)
       </p>
