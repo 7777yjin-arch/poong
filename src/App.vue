@@ -311,14 +311,14 @@ function getOtherMembers(crew) {
     // 지우리 항상 맨 끝
     if (a.id === TROLL_ID) return 1
     if (b.id === TROLL_ID) return -1
-    // 역할 순서 정렬
-    const aRole = roleOrder.indexOf(a.role)
-    const bRole = roleOrder.indexOf(b.role)
-    if (aRole !== bRole) return aRole - bRole
-    // 같은 역할 내에서 라이브 우선
+    // 라이브 우선 정렬
     const aLive = isLive(a.id) ? 1 : 0
     const bLive = isLive(b.id) ? 1 : 0
-    return bLive - aLive
+    if (aLive !== bLive) return bLive - aLive
+    // 같은 라이브 상태 내에서 역할 순서
+    const aRole = roleOrder.indexOf(a.role)
+    const bRole = roleOrder.indexOf(b.role)
+    return aRole - bRole
   })
 }
 
