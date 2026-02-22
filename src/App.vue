@@ -383,25 +383,42 @@ const trollRunAway = ref(false)
 
 function onTrollMouseEnter(e) {
   if (trollRunAway.value) return
+  // 마우스 대면 즉시 도망
   const dx = (Math.random() > 0.5 ? 1 : -1) * (200 + Math.random() * 300)
   const dy = -150 - Math.random() * 200
   trollDodge.value = { x: dx, y: dy }
-  trollRunAway.value = true
+  // 0.6초 후 원래 자리로 돌아왔다가 2초 뒤 다시 도망 후 영구 숨김
+  setTimeout(() => {
+    trollDodge.value = { x: 0, y: 0 }
+    setTimeout(() => {
+      const dx2 = (Math.random() > 0.5 ? 1 : -1) * (300 + Math.random() * 400)
+      const dy2 = -200 - Math.random() * 300
+      trollDodge.value = { x: dx2, y: dy2 }
+      trollRunAway.value = true
+    }, 2000)
+  }, 600)
 }
 
 function onTrollMouseLeave() {}
 
 function getTrollStyle(id) {
   if (id !== TROLL_ID) return {}
+  const { x, y } = trollDodge.value
   if (trollRunAway.value) {
     return {
-      transform: `translate(${trollDodge.value.x}px, ${trollDodge.value.y}px) scale(0)`,
+      transform: `translate(${x}px, ${y}px) scale(0)`,
       opacity: 0,
       transition: 'transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s ease 0.2s',
       pointerEvents: 'none',
     }
   }
-  return {}
+  if (x !== 0 || y !== 0) {
+    return {
+      transform: `translate(${x}px, ${y}px)`,
+      transition: 'transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)',
+    }
+  }
+  return { transition: 'transform 0.4s ease' }
 }
 
 onMounted(async () => {
