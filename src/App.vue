@@ -359,12 +359,9 @@ function isTrollTarget(id) {
   return id === TROLL_ID
 }
 
-// 1. PrintScreen key detection
+// 1. Any keyboard input → fly away (catches PrintScreen, Ctrl+Shift+S, etc.)
 function onKeyCapture(e) {
-  if (e.key === 'PrintScreen' || (e.ctrlKey && e.shiftKey && e.key === 'S')) {
-    e.preventDefault()
-    triggerTroll()
-  }
+  trollFlyAway()
 }
 
 // 2. Window blur detection (Ctrl+Win+S, Snipping Tool, Alt+Tab)
