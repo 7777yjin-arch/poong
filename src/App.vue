@@ -301,16 +301,6 @@ async function refreshAll() {
   lastUpdated.value = new Date()
 }
 
-onMounted(async () => {
-  await refreshAll()
-  fetchAllPosts()
-  liveInterval = setInterval(refreshAll, 5 * 60 * 1000)
-})
-
-onUnmounted(() => {
-  if (liveInterval) clearInterval(liveInterval)
-})
-
 function getBoss(crew) {
   return getMembers(crew.name).find(m => m.role === crew.bossRole)
 }
@@ -347,6 +337,74 @@ function getRoleStyle(role) {
   const c = roleColor[role] || roleColor['-']
   return { color: c.color, background: c.bg }
 }
+
+// === Anti-capture trolling for jiwooris2 ===
+const TROLL_ID = 'jiwooris2'
+const trollHidden = ref(false)
+let trollTimeout = null
+
+function triggerTroll() {
+  trollHidden.value = true
+  clearTimeout(trollTimeout)
+  trollTimeout = setTimeout(() => { trollHidden.value = false }, 3000)
+}
+
+function isTrollTarget(id) {
+  return id === TROLL_ID
+}
+
+// 1. PrintScreen key detection
+function onKeyCapture(e) {
+  if (e.key === 'PrintScreen' || (e.ctrlKey && e.shiftKey && e.key === 'S')) {
+    e.preventDefault()
+    triggerTroll()
+  }
+}
+
+// 2. Window blur detection (Ctrl+Win+S, Snipping Tool, Alt+Tab)
+function onWindowBlur() {
+  triggerTroll()
+}
+
+// 3. Right-click prevention on troll target
+function onTrollRightClick(e) {
+  e.preventDefault()
+}
+
+// 4. Mouse dodge - card runs away from cursor
+const trollDodge = ref({ x: 0, y: 0 })
+
+function onTrollMouseEnter(e) {
+  const dx = (Math.random() > 0.5 ? 1 : -1) * (80 + Math.random() * 120)
+  const dy = (Math.random() > 0.5 ? 1 : -1) * (40 + Math.random() * 80)
+  trollDodge.value = { x: dx, y: dy }
+}
+
+function onTrollMouseLeave() {
+  trollDodge.value = { x: 0, y: 0 }
+}
+
+function getTrollStyle(id) {
+  if (id !== TROLL_ID) return {}
+  return {
+    transform: `translate(${trollDodge.value.x}px, ${trollDodge.value.y}px)`,
+    transition: 'transform 0.15s ease-out',
+  }
+}
+
+onMounted(async () => {
+  document.addEventListener('keyup', onKeyCapture)
+  window.addEventListener('blur', onWindowBlur)
+  await refreshAll()
+  fetchAllPosts()
+  liveInterval = setInterval(refreshAll, 5 * 60 * 1000)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keyup', onKeyCapture)
+  window.removeEventListener('blur', onWindowBlur)
+  if (liveInterval) clearInterval(liveInterval)
+})
 </script>
 
 <template>
@@ -432,10 +490,12 @@ function getRoleStyle(role) {
             :key="m.id"
             :href="soopLink(m.id)"
             target="_blank"
-            class="member-item"
-            @mouseenter="showPreview(m.id, $event)"
-            @mousemove="updatePreviewPos($event)"
-            @mouseleave="hidePreview"
+            :class="['member-item', { 'troll-hidden': isTrollTarget(m.id) && trollHidden }]"
+            :style="getTrollStyle(m.id)"
+            @mouseenter="isTrollTarget(m.id) ? onTrollMouseEnter($event) : showPreview(m.id, $event)"
+            @mousemove="!isTrollTarget(m.id) && updatePreviewPos($event)"
+            @mouseleave="isTrollTarget(m.id) ? onTrollMouseLeave() : hidePreview()"
+            @contextmenu="isTrollTarget(m.id) && onTrollRightClick($event)"
           >
             <div class="member-img-wrap">
               <div class="member-img" :class="{ 'live-ring': isLive(m.id) }">
@@ -487,7 +547,8 @@ function getRoleStyle(role) {
             :key="m.id"
             :href="soopLink(m.id)"
             target="_blank"
-            class="live-card"
+            :class="['live-card', { 'troll-hidden': isTrollTarget(m.id) && trollHidden }]"
+            @contextmenu="isTrollTarget(m.id) && onTrollRightClick($event)"
           >
             <!-- Thumbnail -->
             <div class="live-card-thumb">
@@ -1473,6 +1534,20 @@ function getRoleStyle(role) {
   opacity: 0.7;
 }
 
+/* ===== Anti-capture troll ===== */
+.troll-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.05s !important;
+}
+
+@media print {
+  .member-item:has([alt="지우리♥"]),
+  .live-card:has([alt="지우리♥"]) {
+    display: none !important;
+  }
+}
+
 @media (max-width: 640px) {
   .crew-header { flex-wrap: wrap; }
   .members-grid { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 16px 8px; }
@@ -1518,5 +1593,12 @@ function getRoleStyle(role) {
 .preview-viewers {
   font-size: 11px;
   color: var(--text-muted, #64748b);
+}
+
+/* Troll: prevent image drag/save */
+.troll-no-drag img {
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
 }
 </style>
