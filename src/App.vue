@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { crews, roleColor } from './data/crews.js'
+import { crews, roleColor, roleOrder } from './data/crews.js'
 
 // Theme
 const isDark = ref(localStorage.getItem('theme') !== 'light')
@@ -311,6 +311,11 @@ function getOtherMembers(crew) {
     // 지우리 항상 맨 끝
     if (a.id === TROLL_ID) return 1
     if (b.id === TROLL_ID) return -1
+    // 역할 순서 정렬
+    const aRole = roleOrder.indexOf(a.role)
+    const bRole = roleOrder.indexOf(b.role)
+    if (aRole !== bRole) return aRole - bRole
+    // 같은 역할 내에서 라이브 우선
     const aLive = isLive(a.id) ? 1 : 0
     const bLive = isLive(b.id) ? 1 : 0
     return bLive - aLive
