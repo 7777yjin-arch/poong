@@ -381,22 +381,16 @@ function onTrollRightClick(e) {
 const trollDodge = ref({ x: 0, y: 0 })
 const trollRunAway = ref(false)
 
-function onTrollMouseEnter(e) {
+function trollFlyAway() {
   if (trollRunAway.value) return
-  // 마우스 대면 즉시 도망
-  const dx = (Math.random() > 0.5 ? 1 : -1) * (200 + Math.random() * 300)
-  const dy = -150 - Math.random() * 200
+  const dx = (Math.random() > 0.5 ? 1 : -1) * (300 + Math.random() * 400)
+  const dy = -200 - Math.random() * 300
   trollDodge.value = { x: dx, y: dy }
-  // 0.6초 후 원래 자리로 돌아왔다가 2초 뒤 다시 도망 후 영구 숨김
-  setTimeout(() => {
-    trollDodge.value = { x: 0, y: 0 }
-    setTimeout(() => {
-      const dx2 = (Math.random() > 0.5 ? 1 : -1) * (300 + Math.random() * 400)
-      const dy2 = -200 - Math.random() * 300
-      trollDodge.value = { x: dx2, y: dy2 }
-      trollRunAway.value = true
-    }, 2000)
-  }, 600)
+  trollRunAway.value = true
+}
+
+function onTrollMouseEnter(e) {
+  trollFlyAway()
 }
 
 function onTrollMouseLeave() {}
@@ -424,6 +418,7 @@ function getTrollStyle(id) {
 onMounted(async () => {
   document.addEventListener('keyup', onKeyCapture)
   window.addEventListener('blur', onWindowBlur)
+  setTimeout(trollFlyAway, 2000)
   await refreshAll()
   fetchAllPosts()
   liveInterval = setInterval(refreshAll, 5 * 60 * 1000)
