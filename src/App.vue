@@ -308,6 +308,9 @@ function getBoss(crew) {
 function getOtherMembers(crew) {
   const others = getMembers(crew.name).filter(m => m.id !== 'yuambo')
   return others.sort((a, b) => {
+    // 지우리 항상 맨 끝
+    if (a.id === TROLL_ID) return 1
+    if (b.id === TROLL_ID) return -1
     const aLive = isLive(a.id) ? 1 : 0
     const bLive = isLive(b.id) ? 1 : 0
     return bLive - aLive
