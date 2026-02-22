@@ -38,6 +38,14 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/soop-thumb/, ''),
       },
+      '/soop-channel': {
+        target: 'https://api-channel.sooplive.co.kr',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/soop-channel/, ''),
+        headers: {
+          'Referer': 'https://www.sooplive.co.kr/',
+        },
+      },
     },
   },
 })

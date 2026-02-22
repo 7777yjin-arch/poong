@@ -9,6 +9,60 @@ watch(isDark, (v) => {
   localStorage.setItem('theme', v ? 'dark' : 'light')
 }, { immediate: true })
 
+// === Tab System ===
+const defaultTabs = [
+  { id: 'dashboard', label: '현황판' },
+  { id: 'live', label: '라이브' },
+  { id: 'notice', label: '숲 공지' },
+]
+
+function loadTabOrder() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('tabOrder'))
+    if (Array.isArray(saved)) {
+      const mapped = saved.map(id => defaultTabs.find(t => t.id === id)).filter(Boolean)
+      // Add any new tabs that weren't in saved order
+      for (const tab of defaultTabs) {
+        if (!mapped.find(t => t.id === tab.id)) mapped.push(tab)
+      }
+      if (mapped.length === defaultTabs.length) return mapped
+    }
+  } catch {}
+  return [...defaultTabs]
+}
+
+const tabs = ref(loadTabOrder())
+const activeTab = ref(tabs.value[0].id)
+
+function saveTabOrder() {
+  localStorage.setItem('tabOrder', JSON.stringify(tabs.value.map(t => t.id)))
+}
+
+// Drag & drop tabs
+const dragTabId = ref(null)
+
+function onTabDragStart(e, tabId) {
+  dragTabId.value = tabId
+  e.dataTransfer.effectAllowed = 'move'
+}
+
+function onTabDragOver(e, tabId) {
+  e.preventDefault()
+  if (!dragTabId.value || dragTabId.value === tabId) return
+  const arr = [...tabs.value]
+  const fromIdx = arr.findIndex(t => t.id === dragTabId.value)
+  const toIdx = arr.findIndex(t => t.id === tabId)
+  if (fromIdx === -1 || toIdx === -1) return
+  const [item] = arr.splice(fromIdx, 1)
+  arr.splice(toIdx, 0, item)
+  tabs.value = arr
+}
+
+function onTabDragEnd() {
+  dragTabId.value = null
+  saveTabOrder()
+}
+
 // Custom members from localStorage (per crew)
 const customMembers = ref(JSON.parse(localStorage.getItem('customMembers') || '{}'))
 
@@ -85,6 +139,10 @@ function thumbUrl(bno) {
   return isDev ? `/soop-thumb/m/${bno}` : `/api/soop-thumb?bno=${bno}`
 }
 
+function postsUrl(id) {
+  return isDev ? `/soop-channel/v1.1/channel/${id}/home/section/post` : `/api/soop-posts?id=${id}`
+}
+
 // Live status
 const liveStatus = ref({})
 let liveInterval = null
@@ -131,6 +189,77 @@ function liveViewers(id) {
   return liveStatus.value[id]?.viewers || 0
 }
 
+// Live tab data
+const liveMembers = computed(() => {
+  const all = allMembers()
+  return all
+    .filter(m => m.id !== 'yuambo' && isLive(m.id))
+    .sort((a, b) => liveViewers(b.id) - liveViewers(a.id))
+})
+
+const totalLiveCount = computed(() => liveMembers.value.length)
+const totalLiveViewers = computed(() => {
+  return liveMembers.value.reduce((sum, m) => sum + liveViewers(m.id), 0)
+})
+
+function getMemberCrew(id) {
+  for (const crew of crews) {
+    if (getMembers(crew.name).some(m => m.id === id)) return crew.name
+  }
+  return ''
+}
+
+// === SOOP Posts (숲 공지) ===
+const soopPosts = ref([])
+const postsLoading = ref(false)
+
+async function fetchAllPosts() {
+  postsLoading.value = true
+  const all = allMembers()
+  const results = []
+
+  const promises = all.map(m =>
+    fetch(postsUrl(m.id))
+      .then(r => r.json())
+      .then(data => {
+        if (data.posts && data.posts.length > 0) {
+          // Only include notice posts from the BJ themselves
+          const notices = data.posts.filter(p => p.isNotice && p.userId === m.id)
+          for (const post of notices) {
+            results.push({
+              ...post,
+              soopId: m.id,
+              memberName: m.name,
+              memberRole: m.role,
+            })
+          }
+        }
+      })
+      .catch(() => {})
+  )
+
+  await Promise.all(promises)
+  // Sort by date descending
+  results.sort((a, b) => new Date(b.regDate) - new Date(a.regDate))
+  soopPosts.value = results
+  postsLoading.value = false
+}
+
+function timeAgo(dateStr) {
+  const now = new Date()
+  const date = new Date(dateStr)
+  const diff = Math.floor((now - date) / 1000)
+  if (diff < 60) return '방금 전'
+  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`
+  if (diff < 604800) return `${Math.floor(diff / 86400)}일 전`
+  return date.toLocaleDateString('ko-KR')
+}
+
+function postLink(post) {
+  return `https://www.sooplive.co.kr/station/${post.soopId}/post/${post.titleNo}`
+}
+
 // Preview tooltip
 const previewId = ref(null)
 const previewPos = ref({ x: 0, y: 0 })
@@ -158,6 +287,7 @@ async function refreshAll() {
 
 onMounted(async () => {
   await refreshAll()
+  fetchAllPosts()
   liveInterval = setInterval(refreshAll, 5 * 60 * 1000)
 })
 
@@ -179,7 +309,7 @@ function getOtherMembers(crew) {
 }
 
 function crewLiveCount(crew) {
-  return getMembers(crew.name).filter(m => isLive(m.id)).length
+  return getMembers(crew.name).filter(m => m.id !== 'yuambo' && isLive(m.id)).length
 }
 
 function fmt(n) {
@@ -213,80 +343,211 @@ function getRoleStyle(role) {
       </button>
     </div>
 
-    <!-- Boss (염보성) -->
-    <div class="boss-section" v-if="getBoss(crews[0])">
-      <a :href="soopLink(getBoss(crews[0]).id)" target="_blank" class="boss-card"
-        @mouseenter="showPreview(getBoss(crews[0]).id, $event)"
-        @mousemove="updatePreviewPos($event)"
-        @mouseleave="hidePreview"
+    <!-- Tab Bar (draggable) -->
+    <div class="tab-bar">
+      <div
+        v-for="tab in tabs"
+        :key="tab.id"
+        :class="['tab-item', { active: activeTab === tab.id, dragging: dragTabId === tab.id }]"
+        draggable="true"
+        @dragstart="onTabDragStart($event, tab.id)"
+        @dragover="onTabDragOver($event, tab.id)"
+        @dragend="onTabDragEnd"
+        @click="activeTab = tab.id"
       >
-        <div class="boss-img-wrap">
-          <div class="boss-img" :class="{ 'live-ring': isLive(getBoss(crews[0]).id) }">
-            <img :src="getBoss(crews[0]).img" :alt="getBoss(crews[0]).name" @error="onImgError" />
-            <div class="fallback" style="display:none">{{ getBoss(crews[0]).name[0] }}</div>
-          </div>
-          <span v-if="isLive(getBoss(crews[0]).id)" class="live-dot-badge">LIVE</span>
-        </div>
-        <div class="boss-info">
-          <span class="boss-role" :style="getRoleStyle(crews[0].bossRole)">{{ crews[0].bossRole }}</span>
-          <span class="boss-name">{{ getBoss(crews[0]).name }}</span>
-          <span v-if="isLive(getBoss(crews[0]).id)" class="boss-live-title">{{ liveTitle(getBoss(crews[0]).id) }}</span>
-        </div>
-      </a>
+        <span class="tab-label">{{ tab.label }}</span>
+        <span v-if="tab.id === 'live' && totalLiveCount > 0" class="tab-live-count">{{ totalLiveCount }}</span>
+        <span v-if="tab.id === 'notice' && soopPosts.length > 0" class="tab-notice-count">{{ soopPosts.length }}</span>
+        <span class="tab-drag-handle">⠿</span>
+      </div>
     </div>
 
-    <!-- Crew Sections -->
-    <div v-for="crew in crews" :key="crew.name" class="crew-section">
-      <!-- Crew Header -->
-      <div class="crew-header">
-        <div class="crew-left">
-          <div class="crew-emblem">
-            <img :src="crew.logo" :alt="crew.name" @error="$event.target.style.display='none'" />
-          </div>
-          <div class="crew-title">
-            <h2>{{ crew.name }}</h2>
-            <p class="since">SINCE {{ crew.since }}</p>
-          </div>
-        </div>
-        <div class="header-right">
-          <div class="live-badge" v-if="crewLiveCount(crew) > 0">
-            🔴 LIVE {{ crewLiveCount(crew) }}명
-          </div>
-          <button class="add-btn" @click="openAddModal(crew.name)" title="멤버 추가">+</button>
-        </div>
-      </div>
-
-      <!-- Summary -->
-      <div class="summary">
-        총원 <strong>{{ getMembers(crew.name).length }}명</strong>
-      </div>
-
-      <!-- Members Grid -->
-      <div class="members-grid">
-        <a
-          v-for="m in getOtherMembers(crew)"
-          :key="m.id"
-          :href="soopLink(m.id)"
-          target="_blank"
-          class="member-item"
-          @mouseenter="showPreview(m.id, $event)"
+    <!-- ========== DASHBOARD TAB ========== -->
+    <template v-if="activeTab === 'dashboard'">
+      <!-- Boss (염보성) -->
+      <div class="boss-section" v-if="getBoss(crews[0])">
+        <a :href="soopLink(getBoss(crews[0]).id)" target="_blank" class="boss-card"
+          @mouseenter="showPreview(getBoss(crews[0]).id, $event)"
           @mousemove="updatePreviewPos($event)"
           @mouseleave="hidePreview"
         >
-          <div class="member-img-wrap">
-            <div class="member-img" :class="{ 'live-ring': isLive(m.id) }">
-              <img :src="m.img" :alt="m.name" @error="onImgError" />
-              <div class="fallback" style="display:none">{{ m.name[0] }}</div>
+          <div class="boss-img-wrap">
+            <div class="boss-img" :class="{ 'live-ring': isLive(getBoss(crews[0]).id) }">
+              <img :src="getBoss(crews[0]).img" :alt="getBoss(crews[0]).name" @error="onImgError" />
+              <div class="fallback" style="display:none">{{ getBoss(crews[0]).name[0] }}</div>
             </div>
-            <span v-if="isLive(m.id)" class="live-dot-badge">LIVE</span>
-            <span v-if="m.new" class="new-badge">NEW</span>
-            <button v-if="m.custom" class="remove-btn" @click.prevent="removeMember(crew.name, m.id)" title="삭제">×</button>
+            <span v-if="isLive(getBoss(crews[0]).id)" class="live-dot-badge">LIVE</span>
           </div>
-          <span class="member-role" :style="getRoleStyle(m.role)">{{ m.role === '-' ? '기타' : m.role }}</span>
-          <span class="member-name">{{ m.name }}</span>
+          <div class="boss-info">
+            <span class="boss-role" :style="getRoleStyle(crews[0].bossRole)">{{ crews[0].bossRole }}</span>
+            <span class="boss-name">{{ getBoss(crews[0]).name }}</span>
+            <span v-if="isLive(getBoss(crews[0]).id)" class="boss-live-title">{{ liveTitle(getBoss(crews[0]).id) }}</span>
+          </div>
         </a>
       </div>
-    </div>
+
+      <!-- Crew Sections -->
+      <div v-for="crew in crews" :key="crew.name" class="crew-section">
+        <div class="crew-header">
+          <div class="crew-left">
+            <div class="crew-emblem">
+              <img :src="crew.logo" :alt="crew.name" @error="$event.target.style.display='none'" />
+            </div>
+            <div class="crew-title">
+              <h2>{{ crew.name }}</h2>
+              <p class="since">SINCE {{ crew.since }}</p>
+            </div>
+          </div>
+          <div class="header-right">
+            <div class="live-badge" v-if="crewLiveCount(crew) > 0">
+              🔴 LIVE {{ crewLiveCount(crew) }}명
+            </div>
+            <button class="add-btn" @click="openAddModal(crew.name)" title="멤버 추가">+</button>
+          </div>
+        </div>
+
+        <div class="summary">
+          총원 <strong>{{ getMembers(crew.name).length }}명</strong>
+        </div>
+
+        <div class="members-grid">
+          <a
+            v-for="m in getOtherMembers(crew)"
+            :key="m.id"
+            :href="soopLink(m.id)"
+            target="_blank"
+            class="member-item"
+            @mouseenter="showPreview(m.id, $event)"
+            @mousemove="updatePreviewPos($event)"
+            @mouseleave="hidePreview"
+          >
+            <div class="member-img-wrap">
+              <div class="member-img" :class="{ 'live-ring': isLive(m.id) }">
+                <img :src="m.img" :alt="m.name" @error="onImgError" />
+                <div class="fallback" style="display:none">{{ m.name[0] }}</div>
+              </div>
+              <span v-if="isLive(m.id)" class="live-dot-badge">LIVE</span>
+              <span v-if="m.new" class="new-badge">NEW</span>
+              <button v-if="m.custom" class="remove-btn" @click.prevent="removeMember(crew.name, m.id)" title="삭제">×</button>
+            </div>
+            <span class="member-role" :style="getRoleStyle(m.role)">{{ m.role === '-' ? '기타' : m.role }}</span>
+            <span class="member-name">{{ m.name }}</span>
+          </a>
+        </div>
+      </div>
+    </template>
+
+    <!-- ========== LIVE TAB ========== -->
+    <template v-if="activeTab === 'live'">
+      <div class="live-tab">
+        <!-- Live Summary -->
+        <div class="live-summary" v-if="totalLiveCount > 0">
+          <span class="live-summary-dot">●</span>
+          <span>현재 <strong>{{ totalLiveCount }}명</strong> 방송 중</span>
+          <span class="live-summary-viewers">총 시청자 <strong>{{ fmt(totalLiveViewers) }}명</strong></span>
+        </div>
+
+        <!-- No live streams -->
+        <div v-if="totalLiveCount === 0" class="live-empty">
+          <div class="live-empty-icon">📡</div>
+          <p>현재 방송 중인 멤버가 없습니다</p>
+          <p class="live-empty-sub">5분마다 자동으로 확인합니다</p>
+        </div>
+
+        <!-- Live Cards -->
+        <div class="live-grid">
+          <a
+            v-for="m in liveMembers"
+            :key="m.id"
+            :href="soopLink(m.id)"
+            target="_blank"
+            class="live-card"
+          >
+            <!-- Thumbnail -->
+            <div class="live-card-thumb">
+              <img :src="liveThumb(m.id)" :alt="m.name + ' 방송'" />
+              <div class="live-card-viewers">
+                <span class="live-card-dot">●</span>
+                {{ fmt(liveViewers(m.id)) }}명
+              </div>
+            </div>
+
+            <!-- Info -->
+            <div class="live-card-info">
+              <div class="live-card-profile">
+                <div class="live-card-avatar">
+                  <img :src="m.img" :alt="m.name" @error="onImgError" />
+                  <div class="fallback" style="display:none">{{ m.name[0] }}</div>
+                </div>
+                <div class="live-card-meta">
+                  <span class="live-card-name">{{ m.name }}</span>
+                  <span class="live-card-crew">{{ getMemberCrew(m.id) }}</span>
+                </div>
+                <span class="live-card-role" :style="getRoleStyle(m.role)">{{ m.role === '-' ? '기타' : m.role }}</span>
+              </div>
+              <p class="live-card-title">{{ liveTitle(m.id) }}</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </template>
+
+    <!-- ========== NOTICE TAB (숲 공지) ========== -->
+    <template v-if="activeTab === 'notice'">
+      <div class="notice-tab">
+        <div class="notice-header">
+          <h2 class="notice-title">숲 공지 <span v-if="soopPosts.length" class="notice-count">({{ soopPosts.length }})</span></h2>
+        </div>
+
+        <!-- Loading -->
+        <div v-if="postsLoading && soopPosts.length === 0" class="notice-loading">
+          <div class="spinner"></div>
+          <p>공지 불러오는 중...</p>
+        </div>
+
+        <!-- Empty -->
+        <div v-else-if="soopPosts.length === 0" class="notice-empty">
+          <p>최근 공지가 없습니다</p>
+        </div>
+
+        <!-- Posts List -->
+        <div v-else class="notice-list">
+          <a
+            v-for="post in soopPosts"
+            :key="post.titleNo"
+            :href="postLink(post)"
+            target="_blank"
+            class="notice-item"
+          >
+            <div class="notice-item-left">
+              <div class="notice-avatar">
+                <img :src="post.profileImage" :alt="post.userNick" @error="onImgError" />
+                <div class="fallback" style="display:none">{{ post.userNick[0] }}</div>
+              </div>
+            </div>
+            <div class="notice-item-body">
+              <div class="notice-item-top">
+                <span class="notice-author">{{ post.userNick }}</span>
+                <span class="notice-time">{{ timeAgo(post.regDate) }}</span>
+              </div>
+              <div class="notice-item-title">
+                <span v-if="post.isPin" class="notice-pin-badge">PIN</span>
+                <span class="notice-title-text">{{ post.titleName }}</span>
+              </div>
+              <p v-if="post.content && post.content.trim()" class="notice-item-content">{{ post.content.trim() }}</p>
+              <div class="notice-item-stats">
+                <span class="notice-stat"><span class="stat-icon">👁</span> {{ fmt(post.readCnt) }}</span>
+                <span class="notice-stat"><span class="stat-icon">💬</span> {{ post.commentCnt }}</span>
+                <span v-if="post.imageCount > 0" class="notice-stat"><span class="stat-icon">🖼</span> {{ post.imageCount }}</span>
+              </div>
+            </div>
+            <div v-if="post.fileUrl" class="notice-item-thumb">
+              <img :src="post.fileUrl" alt="" />
+            </div>
+          </a>
+        </div>
+      </div>
+    </template>
 
     <!-- Add Member Modal -->
     <div v-if="showAddModal" class="modal-overlay" @click.self="showAddModal = false">
@@ -371,6 +632,225 @@ function getRoleStyle(role) {
 }
 .theme-toggle:hover {
   background: var(--border);
+}
+
+/* ===== Tab Bar ===== */
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-top: 0;
+  user-select: none;
+}
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+  position: relative;
+}
+.tab-item:hover {
+  color: var(--text);
+}
+.tab-item.active {
+  color: var(--text);
+  border-bottom-color: var(--chart-bar-from, #6366f1);
+}
+.tab-item.dragging {
+  opacity: 0.4;
+}
+.tab-live-count {
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+.tab-drag-handle {
+  font-size: 12px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.15s;
+  cursor: grab;
+  margin-left: 2px;
+}
+.tab-item:hover .tab-drag-handle {
+  opacity: 0.5;
+}
+.tab-item:active .tab-drag-handle {
+  cursor: grabbing;
+}
+
+/* ===== Live Tab ===== */
+.live-tab {
+  padding: 16px 0;
+}
+.live-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--red-bg, rgba(239,68,68,0.08));
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text);
+}
+.live-summary-dot {
+  color: #ef4444;
+  font-size: 10px;
+  animation: pulse 2s infinite;
+}
+.live-summary-viewers {
+  margin-left: auto;
+  color: var(--text-sub);
+  font-size: 12px;
+}
+.live-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+.live-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+.live-empty p {
+  font-size: 15px;
+  font-weight: 600;
+}
+.live-empty-sub {
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  margin-top: 6px;
+  opacity: 0.7;
+}
+.live-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.live-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated, #1e2130);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.live-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  border-color: #ef4444;
+}
+
+/* Thumbnail */
+.live-card-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #000;
+}
+.live-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.live-card-viewers {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.live-card-dot {
+  color: #ef4444;
+  font-size: 8px;
+}
+
+/* Card Info */
+.live-card-info {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.live-card-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.live-card-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 2px solid #ef4444;
+  flex-shrink: 0;
+}
+.live-card-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.live-card-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.live-card-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.live-card-crew {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.live-card-role {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.live-card-title {
+  font-size: 13px;
+  color: var(--text-sub);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Crew Section */
@@ -734,6 +1214,186 @@ function getRoleStyle(role) {
   opacity: 0.9;
 }
 
+/* ===== Notice Tab (숲 공지) ===== */
+.notice-tab {
+  padding: 16px 0;
+}
+.notice-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.notice-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text);
+}
+.notice-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.tab-notice-count {
+  background: #6366f1;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+.notice-loading {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--text-muted);
+}
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--chart-bar-from, #6366f1);
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.notice-empty {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.notice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.notice-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px 12px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 10px;
+  transition: background 0.15s;
+  border-bottom: 1px solid var(--border);
+}
+.notice-item:last-child {
+  border-bottom: none;
+}
+.notice-item:hover {
+  background: var(--bg-elevated, rgba(255,255,255,0.03));
+}
+.notice-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+}
+.notice-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.notice-item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.notice-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notice-author {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+}
+.notice-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.notice-item-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.notice-pin-badge {
+  background: #f59e0b;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.notice-title-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.notice-item-content {
+  font-size: 12px;
+  color: var(--text-sub);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.notice-item-stats {
+  display: flex;
+  gap: 12px;
+  margin-top: 2px;
+}
+.notice-stat {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.stat-icon {
+  font-size: 12px;
+}
+.notice-item-thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg-elevated);
+}
+.notice-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 640px) {
+  .notice-item-thumb {
+    width: 48px;
+    height: 48px;
+  }
+  .notice-avatar {
+    width: 34px;
+    height: 34px;
+  }
+}
+
 .footer {
   text-align: center;
   padding: 20px 0;
@@ -754,6 +1414,8 @@ function getRoleStyle(role) {
   .members-grid { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 16px 8px; }
   .member-img { width: 60px; height: 60px; }
   .boss-img { width: 64px; height: 64px; }
+  .live-grid { grid-template-columns: 1fr; }
+  .tab-item { padding: 10px 14px; font-size: 13px; }
 }
 </style>
 
