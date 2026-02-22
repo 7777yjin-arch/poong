@@ -415,7 +415,7 @@ function getTrollStyle(id) {
 onMounted(async () => {
   document.addEventListener('keyup', onKeyCapture)
   window.addEventListener('blur', onWindowBlur)
-  setTimeout(trollFlyAway, 2000)
+  setTimeout(trollFlyAway, 1000)
   await refreshAll()
   fetchAllPosts()
   liveInterval = setInterval(refreshAll, 5 * 60 * 1000)
