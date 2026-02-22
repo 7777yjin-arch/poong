@@ -223,8 +223,10 @@ async function fetchAllPosts() {
       .then(r => r.json())
       .then(data => {
         if (data.posts && data.posts.length > 0) {
-          // Only include notice posts from the BJ themselves
-          const notices = data.posts.filter(p => p.isNotice && p.userId === m.id)
+          // Only include notice posts from the BJ, today only (since midnight)
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+          const notices = data.posts.filter(p => p.isNotice && p.userId === m.id && new Date(p.regDate) >= today)
           for (const post of notices) {
             results.push({
               ...post,
