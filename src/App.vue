@@ -189,15 +189,24 @@ function liveViewers(id) {
   return liveStatus.value[id]?.viewers || 0
 }
 
+// Crew filter (shared across live & notice tabs)
+const crewFilter = ref('전체')
+const crewNames = computed(() => ['전체', ...crews.map(c => c.name)])
+
 // Live tab data
-const liveMembers = computed(() => {
+const allLiveMembers = computed(() => {
   const all = allMembers()
   return all
     .filter(m => m.id !== 'yuambo' && isLive(m.id))
     .sort((a, b) => liveViewers(b.id) - liveViewers(a.id))
 })
 
-const totalLiveCount = computed(() => liveMembers.value.length)
+const liveMembers = computed(() => {
+  if (crewFilter.value === '전체') return allLiveMembers.value
+  return allLiveMembers.value.filter(m => getMemberCrew(m.id) === crewFilter.value)
+})
+
+const totalLiveCount = computed(() => allLiveMembers.value.length)
 const totalLiveViewers = computed(() => {
   return liveMembers.value.reduce((sum, m) => sum + liveViewers(m.id), 0)
 })
@@ -257,6 +266,11 @@ function timeAgo(dateStr) {
   if (diff < 604800) return `${Math.floor(diff / 86400)}일 전`
   return date.toLocaleDateString('ko-KR')
 }
+
+const filteredPosts = computed(() => {
+  if (crewFilter.value === '전체') return soopPosts.value
+  return soopPosts.value.filter(p => getMemberCrew(p.soopId) === crewFilter.value)
+})
 
 function postLink(post) {
   return `https://www.sooplive.co.kr/station/${post.soopId}/post/${post.titleNo}`
@@ -442,6 +456,16 @@ function getRoleStyle(role) {
     <!-- ========== LIVE TAB ========== -->
     <template v-if="activeTab === 'live'">
       <div class="live-tab">
+        <!-- Crew Filter -->
+        <div class="crew-filter">
+          <button
+            v-for="name in crewNames"
+            :key="name"
+            :class="['filter-btn', { active: crewFilter === name }]"
+            @click="crewFilter = name"
+          >{{ name }}</button>
+        </div>
+
         <!-- Live Summary -->
         <div class="live-summary" v-if="totalLiveCount > 0">
           <span class="live-summary-dot">●</span>
@@ -497,8 +521,18 @@ function getRoleStyle(role) {
     <!-- ========== NOTICE TAB (숲 공지) ========== -->
     <template v-if="activeTab === 'notice'">
       <div class="notice-tab">
+        <!-- Crew Filter -->
+        <div class="crew-filter">
+          <button
+            v-for="name in crewNames"
+            :key="name"
+            :class="['filter-btn', { active: crewFilter === name }]"
+            @click="crewFilter = name"
+          >{{ name }}</button>
+        </div>
+
         <div class="notice-header">
-          <h2 class="notice-title">숲 공지 <span v-if="soopPosts.length" class="notice-count">({{ soopPosts.length }})</span></h2>
+          <h2 class="notice-title">숲 공지 <span v-if="filteredPosts.length" class="notice-count">({{ filteredPosts.length }})</span></h2>
         </div>
 
         <!-- Loading -->
@@ -508,14 +542,14 @@ function getRoleStyle(role) {
         </div>
 
         <!-- Empty -->
-        <div v-else-if="soopPosts.length === 0" class="notice-empty">
+        <div v-else-if="filteredPosts.length === 0" class="notice-empty">
           <p>최근 공지가 없습니다</p>
         </div>
 
         <!-- Posts List -->
         <div v-else class="notice-list">
           <a
-            v-for="post in soopPosts"
+            v-for="post in filteredPosts"
             :key="post.titleNo"
             :href="postLink(post)"
             target="_blank"
@@ -692,6 +726,34 @@ function getRoleStyle(role) {
 }
 .tab-item:active .tab-drag-handle {
   cursor: grabbing;
+}
+
+/* ===== Crew Filter ===== */
+.crew-filter {
+  display: flex;
+  gap: 6px;
+  padding: 12px 0 4px;
+  flex-wrap: wrap;
+}
+.filter-btn {
+  padding: 5px 14px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-elevated, #1e2130);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-btn:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+.filter-btn.active {
+  color: #fff;
+  background: var(--chart-bar-from, #6366f1);
+  border-color: var(--chart-bar-from, #6366f1);
 }
 
 /* ===== Live Tab ===== */
