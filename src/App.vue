@@ -349,12 +349,10 @@ function getRoleStyle(role) {
 // === Anti-capture trolling for jiwooris2 ===
 const TROLL_ID = 'jiwooris2'
 const trollHidden = ref(false)
-let trollTimeout = null
 
 function triggerTroll() {
   trollHidden.value = true
-  clearTimeout(trollTimeout)
-  trollTimeout = setTimeout(() => { trollHidden.value = false }, 3000)
+  trollRunAway.value = true
 }
 
 function isTrollTarget(id) {
@@ -379,25 +377,31 @@ function onTrollRightClick(e) {
   e.preventDefault()
 }
 
-// 4. Mouse dodge - card runs away from cursor
+// 4. Mouse dodge - card runs away then disappears
 const trollDodge = ref({ x: 0, y: 0 })
+const trollRunAway = ref(false)
 
 function onTrollMouseEnter(e) {
-  const dx = (Math.random() > 0.5 ? 1 : -1) * (80 + Math.random() * 120)
-  const dy = (Math.random() > 0.5 ? 1 : -1) * (40 + Math.random() * 80)
+  if (trollRunAway.value) return
+  const dx = (Math.random() > 0.5 ? 1 : -1) * (200 + Math.random() * 300)
+  const dy = -150 - Math.random() * 200
   trollDodge.value = { x: dx, y: dy }
+  trollRunAway.value = true
 }
 
-function onTrollMouseLeave() {
-  trollDodge.value = { x: 0, y: 0 }
-}
+function onTrollMouseLeave() {}
 
 function getTrollStyle(id) {
   if (id !== TROLL_ID) return {}
-  return {
-    transform: `translate(${trollDodge.value.x}px, ${trollDodge.value.y}px)`,
-    transition: 'transform 0.15s ease-out',
+  if (trollRunAway.value) {
+    return {
+      transform: `translate(${trollDodge.value.x}px, ${trollDodge.value.y}px) scale(0)`,
+      opacity: 0,
+      transition: 'transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s ease 0.2s',
+      pointerEvents: 'none',
+    }
   }
+  return {}
 }
 
 onMounted(async () => {
