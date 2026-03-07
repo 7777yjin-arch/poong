@@ -197,7 +197,7 @@ const crewNames = computed(() => ['전체', ...crews.map(c => c.name)])
 const allLiveMembers = computed(() => {
   const all = allMembers()
   return all
-    .filter(m => m.id !== 'yuambo' && isLive(m.id))
+    .filter(m => isLive(m.id))
     .sort((a, b) => liveViewers(b.id) - liveViewers(a.id))
 })
 
@@ -328,6 +328,18 @@ function crewLiveCount(crew) {
 
 function fmt(n) {
   return n.toLocaleString('ko-KR')
+}
+
+function getDaysInCrew(member, crewName) {
+  const crew = crews.find(c => c.name === crewName)
+  const dateStr = member.joinDate || crew?.since
+  if (!dateStr) return null
+  const parts = dateStr.split('.')
+  const joinDate = new Date(parts[0], parts[1] - 1, parts[2] || 1)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const diff = Math.floor((today - joinDate) / (1000 * 60 * 60 * 24))
+  return diff + 1
 }
 
 function onImgError(e) {
@@ -476,6 +488,7 @@ onUnmounted(() => {
           <div class="boss-info">
             <span class="boss-role" :style="getRoleStyle(crews[0].bossRole)">{{ crews[0].bossRole }}</span>
             <span class="boss-name">{{ getBoss(crews[0]).name }}</span>
+            <span class="days-badge boss-days">D+{{ getDaysInCrew(getBoss(crews[0]), crews[0].name) }}</span>
             <span v-if="isLive(getBoss(crews[0]).id)" class="boss-live-title">{{ liveTitle(getBoss(crews[0]).id) }}</span>
           </div>
         </a>
@@ -529,6 +542,7 @@ onUnmounted(() => {
             </div>
             <span class="member-role" :style="getRoleStyle(m.role)">{{ m.role === '-' ? '기타' : m.role }}</span>
             <span class="member-name">{{ m.name }}</span>
+            <span class="days-badge">D+{{ getDaysInCrew(m, crew.name) }}</span>
           </a>
         </div>
       </div>
@@ -1254,6 +1268,23 @@ onUnmounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.days-badge {
+  font-size: 9px;
+  font-weight: 600;
+  color: #64748b;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1px 5px;
+  margin-top: 2px;
+}
+
+.boss-days {
+  font-size: 11px;
+  padding: 2px 8px;
+  margin-left: 6px;
 }
 
 .remove-btn {
