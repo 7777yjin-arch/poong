@@ -6,7 +6,6 @@ export const crews = [
     bossRole: '수장',
     members: [
       { name: 'A-염보성!!', id: 'yuambo', role: '수장', tribe: '테란', tier: '젝티어', img: '/images/yb/yuambo.jpg', category: 'staff', joinDate: '2023.05.20' },
-      { name: '4s.사테', id: 'hoonykkk', role: '교수', tribe: '테란', tier: '킹티어', img: '/images/yb/hoonykkk.jpg', category: 'staff', joinDate: '2025.09.24' },
       { name: 'Scan유승곤', id: 'scan1014', role: '교수', tribe: '테란', tier: '킹티어', img: '/images/yb/scan1014.jpg', category: 'staff', joinDate: '2023.06.14' },
       { name: '전제민', id: 'wjswpalssla1', role: '교수', tribe: '프로토스', tier: '조커티어', img: '/images/yb/wjswpalssla1.jpg', category: 'staff', joinDate: '2025.02.08' },
       { name: '오메킴승현2', id: 'rlatldgus', role: '교수', tribe: '프로토스', tier: '젝티어', img: '/images/yb/rlatldgus.jpg', category: 'staff', joinDate: '2025.09.05' },
