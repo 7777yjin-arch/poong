@@ -9,7 +9,6 @@
       bossRole: "수장",
       members: [
         { n: "A-염보성!!", id: "yuambo", r: "수장", img: "https://poong-chi.vercel.app/images/yb/yuambo.jpg" },
-        { n: "4s.사테", id: "hoonykkk", r: "교수", img: "https://poong-chi.vercel.app/images/yb/hoonykkk.jpg" },
         { n: "Scan유승계", id: "scan1014", r: "교수", img: "https://poong-chi.vercel.app/images/yb/scan1014.jpg" },
         { n: "전제민", id: "wjswpalssla1", r: "교수", img: "https://poong-chi.vercel.app/images/yb/wjswpalssla1.jpg" },
         { n: "오메틴승도4²", id: "rlatldgus", r: "교수", img: "https://poong-chi.vercel.app/images/yb/rlatldgus.jpg" },
