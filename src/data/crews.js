@@ -24,6 +24,7 @@ export const crews = [
       { name: '준밧드', id: 'gksdidqksxn', role: '어드바이저', tribe: '-', tier: 'LoL', img: '/images/yb/gksdidqksxn.jpg', category: 'etc', new: true, joinDate: '2026.02.11' },
       { name: '오뀨!', id: 'ogm0905', role: '어드바이저', tribe: '-', tier: 'LoL', img: '/images/yb/ogm0905.jpg', category: 'etc', new: true, joinDate: '2026.02.21' },
       { name: '임아니', id: '1004suna', role: '어드바이저', tribe: '-', tier: 'LoL', img: '/images/yb/1004suna.jpg', category: 'etc', new: true, joinDate: '2026.02.11' },
+      { name: '주보리', id: 'under444', role: '어드바이저', tribe: '-', tier: 'LoL', img: '/images/yb/under444.jpg', category: 'etc', new: true, joinDate: '2026.03.21' },
       { name: '지우리♥', id: 'jiwooris2', role: '학생', tribe: '테란', tier: '8티어', img: '/images/yb/jiwooris2.jpg', category: 'student', new: true, joinDate: '2023.05.20' },
     ],
   },
